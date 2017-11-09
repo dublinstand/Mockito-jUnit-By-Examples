@@ -2,6 +2,7 @@ package com.training.business;
 
 import com.training.data.api.TodoService;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +11,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -125,12 +127,70 @@ public class TodoBusinessImplMockTest {
         //with this value
         //We can times(1) so that we verify that this method is called only once with the data provided
 //        verify(todoServiceMock).deleteTodo("Learn to Dance");
-
         verify(todoServiceMock, times(1)).deleteTodo("Learn to Dance");
+
+        //Mockito BDD syntax
+//        then(todoServiceMock).should().deleteTodo("Learn to Dance");
+//        then(todoServiceMock).should(times(1)).deleteTodo("Learn to Dance");
 
         //We can verify if a certain method is not called at all with its data
         verify(todoServiceMock, never()).deleteTodo("Learn Spring MVC");
 
+        //Mockito BDD syntax
+//        then(todoServiceMock).should(never()).deleteTodo("Learn to Dance");
+
         verify(todoServiceMock, never()).deleteTodo("Learn Spring");
+    }
+
+
+    //We want to capture the argument used when a certain method is called
+    @Test
+    public void deleteTodosNotRelatedToSpring_usingBDD_argumentCapture(){
+        //Declare Argument capture that expects a string
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        //GIVEN
+        TodoService todoServiceMock = mock(TodoService.class);
+        List<String> todos = Arrays.asList("Learn Spring MVC","Learn Spring", "Learn to Dance");
+        given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
+        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
+
+        //WHEN
+        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+
+        //THEN
+        //Here we capture the argument passed to deleteTodo Method called by the todoService
+        //Using should() the method is expected to be called only once
+        then(todoServiceMock).should().deleteTodo(stringArgumentCaptor.capture());
+
+        //Now we can assert the value that we captured
+        assertThat(stringArgumentCaptor.getValue(), is("Learn to Dance"));
+    }
+
+    //We want to capture the arguments used when a certain method is called more than once
+    @Test
+    public void deleteTodosNotRelatedToSpring_usingBDD_argumentCaptureMethodIsCalledTwiceWithTwoDifferentArguments(){
+        //Declare Argument capture that expects a string
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        //GIVEN
+        TodoService todoServiceMock = mock(TodoService.class);
+        List<String> todos = Arrays.asList("Learn MVC","Learn Spring", "Learn to Dance");
+        given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
+        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
+
+        //WHEN
+        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+
+        //THEN
+        //Here we capture the argument passed to deleteTodo Method called by the todoService
+        //This method will be called twice for the values Learn MVC and Learn to Dance
+        //because they don't contain the word Spring
+        //We add times(2) because we expect the method to be called twice
+        then(todoServiceMock).should(times(2)).deleteTodo(stringArgumentCaptor.capture());
+
+        //Now our Argument Capture will have two values and will be a list
+        //We want to test that the size of the stringArgumentCaptor is 2
+        assertThat(stringArgumentCaptor.getAllValues().size(), is(2));
     }
 }

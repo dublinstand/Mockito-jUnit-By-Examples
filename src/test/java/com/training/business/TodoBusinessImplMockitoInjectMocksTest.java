@@ -2,7 +2,12 @@ package com.training.business;
 
 import com.training.data.api.TodoService;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,29 +20,34 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
-public class TodoBusinessImplMockTest {
-    //What is mocking?
-    //Mocking is creating objects that simulate the behavior of real objects
-    //Unlike stubs, mock can be dynamically created from code - at runtime
-    //Mocks offer more functionality than stubbing
-    //You can verify method calls and a lot of other things
+@RunWith(MockitoJUnitRunner.class)
+public class TodoBusinessImplMockitoInjectMocksTest {
+    //We'll refactor all tests from TodoBusinessImplMockTest to use Mockito annotations
+
+    //We can remove all mocks in each method - this is the following code removed:
+    //TodoService todoServiceMock = mock(TodoService.class);
+    @Mock
+    TodoService todoServiceMock;
+
+    //Used for injecting the dependency through the constructor in the method under test
+    //We can remove the instantiating of that method in all test methods
+    //TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoServiceMock);
+    @InjectMocks
+    TodoBusinessImpl todoBusinessImpl;
+
+    //We can also create argument captors using the annotations
+    @Captor
+    ArgumentCaptor<String> stringArgumentCaptor;
+
 
     @Test
     public void testRetrieveTodosRelatedToSpring_usingAMock(){
-        //With mocking dynamically have the method return a given value
-
-        //Here we create a mock object of TodoService.class (we can mock also an interface)
-        TodoService todoServiceMock = mock(TodoService.class);
-
         //This will be our data to be returned when the method is called
         List<String> todos = Arrays.asList("Learn Spring MVC","Learn Spring", "Learn to Dance");
 
         //Here we specify that when our mock service calls retrieveTodos and pass in "Dummy user"
         //as user name, then we return our todos List
         when(todoServiceMock.retrieveTodos("Dummy user")).thenReturn(todos);
-
-        //we instantiate our TodoBusinsessImpl class that we want to test and pass the todoServiceStub we created
-        TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoServiceMock);
 
         //here we pass our mocked TodoBusinessImpl that gets a list of 3 records from todoService.retrieveTodos(user)
         //and two of them contain Spring, so filteredTodos will have a size of 2
@@ -48,18 +58,9 @@ public class TodoBusinessImplMockTest {
 
     @Test
     public void testRetrieveTodosRelatedToSpring_withEmptyList(){
-        //With mocking dynamically have the method return a given value
-
-        //Here we create a mock object of TodoService.class (we can mock also an interface)
-        TodoService todoServiceMock = mock(TodoService.class);
-
         //This will be our data to be returned when the method is called
         //In this case we return an empty list
         List<String> todos = Arrays.asList();
-
-        //Here we specify that when our mock service calls retrieveTodos and pass in "Dummy user"
-        //as user name, then we return our todos List
-        when(todoServiceMock.retrieveTodos("Dummy user")).thenReturn(todos);
 
         //we instantiate our TodoBusinsessImpl class that we want to test and pass the todoServiceStub we created
         TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoServiceMock);
@@ -98,18 +99,11 @@ public class TodoBusinessImplMockTest {
     @Test
     public void deleteTodosNotRelatedToSpring_usingBDD(){
         //GIVEN
-
-        //This is our mock interface
-        TodoService todoServiceMock = mock(TodoService.class);
-
         //Our test data
         List<String> todos = Arrays.asList("Learn Spring MVC","Learn Spring", "Learn to Dance");
 
         //When todoServiceMock.retrieveTodos is called, the todos list will be returned
         given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
-
-        //This is our TodoBusinessImpl that is instantiated by our todoServiceMock
-        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
 
         //WHEN
 
@@ -117,7 +111,7 @@ public class TodoBusinessImplMockTest {
         //After we run delete method, it will loop through the values in the todos List and if
         //the value does not contain Spring, it will be deleted and
         //todoServiceMock.deleteTodo will be called with that value - in our case Learn to Dance
-        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+        todoBusinessImpl.deleteTodosNotRelatedToSpring("Test User");
 
         //THEN
 
@@ -145,17 +139,12 @@ public class TodoBusinessImplMockTest {
     //We want to capture the argument used when a certain method is called
     @Test
     public void deleteTodosNotRelatedToSpring_usingBDD_argumentCapture(){
-        //Declare Argument capture that expects a string
-        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-
         //GIVEN
-        TodoService todoServiceMock = mock(TodoService.class);
         List<String> todos = Arrays.asList("Learn Spring MVC","Learn Spring", "Learn to Dance");
         given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
-        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
 
         //WHEN
-        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+        todoBusinessImpl.deleteTodosNotRelatedToSpring("Test User");
 
         //THEN
         //Here we capture the argument passed to deleteTodo Method called by the todoService
@@ -169,17 +158,12 @@ public class TodoBusinessImplMockTest {
     //We want to capture the arguments used when a certain method is called more than once
     @Test
     public void deleteTodosNotRelatedToSpring_usingBDD_argumentCaptureMethodIsCalledTwiceWithTwoDifferentArguments(){
-        //Declare Argument capture that expects a string
-        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
-
         //GIVEN
-        TodoService todoServiceMock = mock(TodoService.class);
         List<String> todos = Arrays.asList("Learn MVC","Learn Spring", "Learn to Dance");
         given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
-        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
 
         //WHEN
-        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+        todoBusinessImpl.deleteTodosNotRelatedToSpring("Test User");
 
         //THEN
         //Here we capture the argument passed to deleteTodo Method called by the todoService

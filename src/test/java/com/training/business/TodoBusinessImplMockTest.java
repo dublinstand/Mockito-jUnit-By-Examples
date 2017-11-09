@@ -6,9 +6,12 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.*;
 
 public class TodoBusinessImplMockTest {
 
@@ -63,5 +66,71 @@ public class TodoBusinessImplMockTest {
         List<String> filteredTodos = todoBusinessImpl.retrieveTodosRelatedToSpring("Dummy user");
 
         assertEquals(0, filteredTodos.size());
+    }
+
+    @Test
+    public void usingMockito_UsingBDD() {
+        //Given
+        List<String> mockList = mock(List.class);
+        given(mockList.get(anyInt())).willReturn("Test Success");
+
+        //When
+        String firstElement = mockList.get(0);
+
+        //Then
+        assertThat(firstElement, is("Test Success"));
+    }
+
+    /*
+    Method under test
+
+    	public void deleteTodosNotRelatedToSpring(String user) {
+		List<String> allTodos = todoService.retrieveTodos(user);
+		for (String todos : allTodos) {
+			if (!todos.contains("Spring")) {
+				todoService.deleteTodo(todos);
+			}
+		}
+	}
+     */
+
+    @Test
+    public void deleteTodosNotRelatedToSpring_usingBDD(){
+        //GIVEN
+
+        //This is our mock interface
+        TodoService todoServiceMock = mock(TodoService.class);
+
+        //Our test data
+        List<String> todos = Arrays.asList("Learn Spring MVC","Learn Spring", "Learn to Dance");
+
+        //When todoServiceMock.retrieveTodos is called, the todos list will be returned
+        given(todoServiceMock.retrieveTodos("Test User")).willReturn(todos);
+
+        //This is our TodoBusinessImpl that is instantiated by our todoServiceMock
+        TodoBusinessImpl todoBusiness = new TodoBusinessImpl(todoServiceMock);
+
+        //WHEN
+
+        //We call the delete method in TodoBusinessImpl
+        //After we run delete method, it will loop through the values in the todos List and if
+        //the value does not contain Spring, it will be deleted and
+        //todoServiceMock.deleteTodo will be called with that value - in our case Learn to Dance
+        todoBusiness.deleteTodosNotRelatedToSpring("Test User");
+
+        //THEN
+
+        //We want to verify that the deleteTodo method is called for Learn to Dance data in the list
+        //If we pass other value than "Learn to Dance" the test will fail, because the method is called only
+        //with this value
+        //We can times(1) so that we verify that this method is called only once with the data provided
+//        verify(todoServiceMock).deleteTodo("Learn to Dance");
+
+        verify(todoServiceMock, times(1)).deleteTodo("Learn to Dance");
+
+        //We can verify if a certain method is not called at all with its data
+        verify(todoServiceMock, never()).deleteTodo("Learn Spring MVC");
+
+        verify(todoServiceMock, never()).deleteTodo("Learn Spring");
     }
 }

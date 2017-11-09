@@ -59,9 +59,7 @@ public class ListTest {
     public void mockList_throwAnException(){
         //We mock the List.class
         List listMock = mock(List.class);
-
         when(listMock.get(anyInt())).thenThrow(new RuntimeException("Exception"));
-
         listMock.get(2);
     }
 }

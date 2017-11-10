@@ -1,4 +1,4 @@
-package com.training.business;
+package com.training.mockito;
 
 import org.junit.Test;
 
